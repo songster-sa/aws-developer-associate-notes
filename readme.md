@@ -13,6 +13,7 @@ https://github.com/mransbro/aws-developer-notes
     - inline - embedded in user/role/group
     - managed - aws managed - can be reused - cannot be customised
     - customised - you create - only resides in your account
+- IAM policy simulator - to test policies before production
 
 ## Amazon Cognito - web identity federation
 - used for larger companies
@@ -153,13 +154,20 @@ https://github.com/mransbro/aws-developer-notes
 - node.js, python, java, c#, go
 - scale out, not scale up
 - lambda functions have to be independent
-- use X-ray to debug
+- **use X-ray to debug** - annotations or indexes in code/data/traces
 - API vs API gateway
     - using API gateway we can configure which event triggers which serverless service
     - urls, http methods, SSL/TLS, targets
 - API caching = API response caching
 - browsers cache against same origin - so AWS uses CORS to change origin (to refresh cache)
-- **Lambda versioning**
+- **Lambda versioning** - use alias
+- lambda concurrent execution limit 1000
+- API gateway errors 
+    - **429 - too many requests** - throttle - exponential backoff etc
+- **VPC** virtual private cloud
+    - like a VPN for your account
+    - private subnet id
+    - security group id , route table, internet gateway, endpoint
 
 ## Dynamo DB
 - noSQL - collection(table) - document(row) - key-value pairs
@@ -189,7 +197,7 @@ https://github.com/mransbro/aws-developer-notes
 - **Provisioned throughput**
     - RCU - read throughput - 4KB reads - 2 for eventually consistent
     - WCU - write throughput - 1KB write
-    - 429 error when throughput exceeds - need to throttle
+    - error when throughput exceeds - 400 - ProvisionedThroughputExceededException
 - **DAX - Dynamo Acceleration - like cache**
 - **when overloaded**
     - client retry
@@ -216,6 +224,8 @@ https://github.com/mransbro/aws-developer-notes
     - long polling - response only when data or timeout (20sec)
 - not supported in all regions - only in 4
 - 1st million requests are free - then 0.50 
+- Delay Q - msg stays invisible form 0-900sec
+- for msg >256KB to 2GB - use S3
 
 ## SWF -Simple Workflow Service
 - task based queue (rather than msg based)
@@ -302,3 +312,10 @@ https://github.com/mransbro/aws-developer-notes
 
 ## Cloud Trail - API calls monitoring - resource provisioning
 
+## AWS CLI Pagination
+- default page size 1000
+    - can give timeout
+    - if result size is 2500 - it will make 3 calls internally but show the result altogether
+- **use small page size** to avoid timeout
+- default max items 100
+    - still fetch all, show these many and return
