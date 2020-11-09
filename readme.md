@@ -14,24 +14,28 @@ https://github.com/mransbro/aws-developer-notes
     - managed - aws managed - can be reused - cannot be customised
     - customised - you create - only resides in your account
 - IAM policy simulator - to test policies before production
+- **cross account access** can be configured to give user of 1 account access to stuff of another account
 
 ## Amazon Cognito - web identity federation
 - used for larger companies
-- cognito is ID broker
+- cognito is ID broker - it provides seamless experience across all devices
 - types
-    - user pools - JWT
-    - identity pool - STS (security token service) API
+    - user pools - JWT - manage sign-in and sign-up
+    - identity pool - STS (security token service) API - create unique identities for users and authenticate them with web ID provider
     - aws credentials - mapped to IAM role
 - SMPS - system manager parameter store - to store credentials
+- **API call - STS assume-role-with-web-identity
+- **user authenticates with FB - FB gives ID token - then use this token to get temp creds via cognito**
 
 ## EC2 - Elastic Compute Cloud
 - types - FIGHT DR MC PIX
 - **Price options**
-    - on demand
-    - reserved
-    - spot
-    - dedicated hosts
+    - on demand - office hours, peaks
+    - reserved - steady, predictable, 3yr contract
+    - spot - high utilization, when data is not lost
+    - dedicated hosts - secure, no multi-tenant virtualization
 - provisions via images (ami = amazon machine image)
+- provisioned per (by) availability zone
 - max of tags allowed 50
 - IAAS - infrastructure as a service
 - **access public IP via http://169.254.169.254/latest/meta-data**
@@ -46,12 +50,14 @@ https://github.com/mransbro/aws-developer-notes
     - throughput optimised HDD
     - Cold HDD (file save) -> where data is NOT accessed regularly
     - Standard -> bootable -> where data is NOT accessed regularly
+- configure encryption while creating EBS volume
     
 ## ELB - Elastic Load Balancer
 - **types**
     - ALB - on OSI layer 7 - application aware
     - NLB - on OSI layer 4 - extreme performance - million requests / sec
     - Classic - both 4 and 7 - x-forward and sticky session - 504 error when app not responding
+- logs to show public IP address - use x-forward-for header
     
 ## Route 53 - DNS
 - applicable to EC2, S3, LB
@@ -89,7 +95,7 @@ https://github.com/mransbro/aws-developer-notes
 ## Elastic Cache
 - in memory cache
 - **types**
-    - mem cahche - simply - no persistence - scale out - 
+    - mem cache - simple - no persistence - scale out/horizontally - object caching
     - Redis - leader boards - sorting - like RDS - multi az - persisted - stateful
     
 ## S3 - Simple Storage Service
@@ -100,7 +106,7 @@ https://github.com/mransbro/aws-developer-notes
 - **globally unique DNS**
 - **Read (immediately) after write for new PUTs objects**
 - **Eventually consistent for modify / overwrites via PUTs and DELETEs**
-- ** PUTs by default support max 5GB data**
+- **PUTs by default support max 5GB data**
 - secure data by
     - access (IAM)
     - ACL
@@ -127,7 +133,7 @@ https://github.com/mransbro/aws-developer-notes
 - **CORS - cross origin resource sharing - cross bucket data access**
 - **for performance optimization**
     - if GET / read is more - use Cloud Front
-    - if mixed - add hex hash as suffix to key names - so they are saved in diff partitions
+    - if mixed - add hex hash PREfix to key names - so they are saved in diff partitions
 - if expect more than 300 PUT/LIST/DELETE req/sec or more than 800 GET req/sec - raise support request with AWS
 - SGS - Simple Gateway Service - file system on S3
 - **how to access bucket - s3://bucket - region**
@@ -145,6 +151,7 @@ https://github.com/mransbro/aws-developer-notes
 - you can manually remove a file from the cache - but charged for it
 - web application firewall VS network firewall
 - **TTL** can be 0sec to 365 days - default is 24hr
+- cannot be used to cache DB data (its for files, pages, videos etc)
 
 ## ECS / ECR - elastic containers service / elastic containers registry
 - buildSpec.yaml file
@@ -164,6 +171,8 @@ https://github.com/mransbro/aws-developer-notes
 - lambda concurrent execution limit 1000
 - API gateway errors 
     - **429 - too many requests** - throttle - exponential backoff etc
+- use swagger to convert APIs
+- API gateway provides a pass through to SOAP - no conversions
 - **VPC** virtual private cloud
     - like a VPN for your account
     - private subnet id
@@ -171,6 +180,7 @@ https://github.com/mransbro/aws-developer-notes
 
 ## Dynamo DB
 - noSQL - collection(table) - document(row) - key-value pairs
+- good for session state storage
 - **consistency model**
     - eventually consistent read - consistent in 1 sec
     - strongly consistent read
@@ -198,34 +208,42 @@ https://github.com/mransbro/aws-developer-notes
     - RCU - read throughput - 4KB reads - 2 for eventually consistent
     - WCU - write throughput - 1KB write
     - error when throughput exceeds - 400 - ProvisionedThroughputExceededException
-- **DAX - Dynamo Acceleration - like cache**
+- **DAX - Dynamo Acceleration - highly available, in-memory cache, only write through**
 - **when overloaded**
     - client retry
     - exponential backoff
     - reduced request frequency
 
 ## KMS - Key Management Service
-- encryption keys are regional
+- solution to create and control your encryption keys
+- **encryption keys are regional**
+- **KMS is multi tenant whereas CloudHSM is dedicated hardware solutions**
+- aws kms encrypt - command to encrypt
+- aws kms enable-key-rotation
+- re-encrypt API call - to encrypt with new CMK
 - keys
-    - envelop key / data key
-    - master key
+    - envelop key / data key - to encrypt data
+    - master key (CMK) - to encrypt the envelop key
 
 ## SQS - Simple Queue Service
 - message queue - distributed - pull based
+- msgs can be delivered multiple times
+- first service on aws platform
 - **<= 256KB**
 - **canNOT prioritise messages - better to set 2 queues**
 - **types**
     - standard - best effort - may not be ordered - unlimited T/sec
     - FIFO - ordered - no duplicates - 300T/sec
-- retention - 1min - 14days - default 4 days
-- visibility timout - <=12hours - default 30 sec (ChangeMessageVisibility API ?)
+- **retention - 1min - 14days - default 4 days**
+- **visibility timeout - <=12hours - default 30 sec (ChangeMessageVisibility API)**
 - **polling**
     - short polling - response every time - whether empty or not
-    - long polling - response only when data or timeout (20sec)
+    - long polling - response only when data or timeout (**20sec**) - efficient repeated polling
 - not supported in all regions - only in 4
 - 1st million requests are free - then 0.50 
 - Delay Q - msg stays invisible form 0-900sec
 - for msg >256KB to 2GB - use S3
+- **use with SNS to "fan out" msgs to multiple queues**
 
 ## SWF -Simple Workflow Service
 - task based queue (rather than msg based)
@@ -234,6 +252,7 @@ https://github.com/mransbro/aws-developer-notes
 
 ## SNS - Simple Notification Service
 - push based
+- msgs CAN be customised by protocol type
 - mobile, email, website, sms, **SQS**, **lambda**
 - Topic - group of recipients
 - multi AZ
@@ -254,22 +273,24 @@ https://github.com/mransbro/aws-developer-notes
     - rolling with additional batches - no performance hit - no rollback
     - immutable - blue/green - no rollback
 - .config file (yaml) inside .ebextensions (json)
+- **jetty for jboss not supported**
 
 ## Cloud Formation
-- script based provisioning - **yaml (preferred) or json**
+- **script based provisioning - yaml (preferred) or json**
 - AWS Template Format Version - 2010-09-09
-- resulting resources called Stack
+- resulting resources called **Stack**
+- if any error - rollback everything
 - **Terminology**
     - parameter - what will be asked
     - conditions - tests run on parameters provided
     - mapping - to be available to stack eg region
     - transfer - include snippets sitting outside the template
-    - resources - mandatory - resources you want to deploy
+    - resources - mandatory - resources you want to deploy or create
     - outputs - on console or input to another stack
 - SAM - servless app model - for serverless provisionings
     - sam-package - input yaml output sam-template.yaml
     - sam-deploy
-- **nexted stack** - template referenced in another template
+- **nested stack** - template referenced in another template
     - in the resources section
 
 ## Kinesis - for streaming data
@@ -298,9 +319,9 @@ https://github.com/mransbro/aws-developer-notes
     - before allow traffic vs allow traffic vs after allow traffic
 
 ## Cloud Watch - monitoring and logs
-- monitors performance of resources
+- **monitors performance of resources**
 - by default logs stored forever - even after termination
-- in EC2 - by default monitors host level metrics
+- **in EC2 - by default monitors host level metrics**
     - n/w, overall disk IO, CPU, status check
     - canNOT see how much space left
 - default monitoring
