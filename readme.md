@@ -8,6 +8,7 @@ https://github.com/mransbro/aws-developer-notes
 ## IAM - Identity Access Manager
 - Users, roles, groups, policy document (json), secret key and access key
 - Roles - provide permissions to resources / services
+- multi factor authentication
 - **ARN**
 - policies
     - inline - embedded in user/role/group
@@ -24,8 +25,11 @@ https://github.com/mransbro/aws-developer-notes
     - identity pool - STS (security token service) API - create unique identities for users and authenticate them with web ID provider
     - aws credentials - mapped to IAM role
 - SMPS - system manager parameter store - to store credentials
-- **API call - STS assume-role-with-web-identity
+- **API call - STS assume-role-with-web-identity**
 - **user authenticates with FB - FB gives ID token - then use this token to get temp creds via cognito**
+- cognito provides features - 
+    - signin signup to your apps
+    - sync of user data across devices 
 
 ## EC2 - Elastic Compute Cloud
 - types - FIGHT DR MC PIX
@@ -41,8 +45,13 @@ https://github.com/mransbro/aws-developer-notes
 - **access public IP via http://169.254.169.254/latest/meta-data**
 - EFS - Elastic File System - file system on EC2
 - EBS - block storage on EC2
+- Instance Store - ephemeral - EC2 stopped, data is lost
+- **Placement groups**
+    - Spread Placement group - small num of critical instances - not share underlying hardware hence wont fail together
+    - Cluster Placement group - 
 
 ## EBS - Elastic Block Storage
+- persistant - if EC2 stopped, no data loss here
 - **2 types**
     - General purpose SSD
     - Provisioned IOPS SSD ->10k IOPS -> high performance
@@ -137,6 +146,7 @@ https://github.com/mransbro/aws-developer-notes
 - if expect more than 300 PUT/LIST/DELETE req/sec or more than 800 GET req/sec - raise support request with AWS
 - SGS - Simple Gateway Service - file system on S3
 - **how to access bucket - s3://bucket - region**
+- can fetch a private object via cloud front - Signed URL / Signed Cookies / origin access identity
 
 ## Cloud Front - CDN - content delivery network
 - **for fast reads and downloads**
@@ -146,7 +156,7 @@ https://github.com/mransbro/aws-developer-notes
 - 2 kinds of distribution
     - real time messaging protocol
     - web distribution
-- via Signed URL / Signed Cookies
+- via Signed URL / Signed Cookies / origin access identity
 - by default applies to all edge locations, but you can blacklist countries
 - you can manually remove a file from the cache - but charged for it
 - web application firewall VS network firewall
@@ -168,6 +178,10 @@ https://github.com/mransbro/aws-developer-notes
 - API caching = API response caching
 - browsers cache against same origin - so AWS uses CORS to change origin (to refresh cache)
 - **Lambda versioning** - use alias
+- **lambda deployment**
+    - zip upload to lambda console
+    - copy paste code in lambda ide
+    - cloud formation
 - lambda concurrent execution limit 1000
 - API gateway errors 
     - **429 - too many requests** - throttle - exponential backoff etc
@@ -202,10 +216,14 @@ https://github.com/mransbro/aws-developer-notes
     - scan - scan entire table - return all fields by default 
         - do many small scans for performance improvement
         - projection - when scan returns only few fields
+- **performance improvements**
+    - small parallel scans
+    - small page size (more queries but faster with no time outs)
 - **query is more efficient in general**
 - **BatchGetItem API for more efficient queries on large items**
 - **Provisioned throughput**
-    - RCU - read throughput - 4KB reads - 2 for eventually consistent
+    - RCU - read throughput - 4KB reads - 2 for eventually consistent (so divide by 2)
+        - 5kb/4kb = 1.2 = considered as 2 not 1 (whole number) ??
     - WCU - write throughput - 1KB write
     - error when throughput exceeds - 400 - ProvisionedThroughputExceededException
 - **DAX - Dynamo Acceleration - highly available, in-memory cache, only write through**
@@ -224,6 +242,7 @@ https://github.com/mransbro/aws-developer-notes
 - keys
     - envelop key / data key - to encrypt data
     - master key (CMK) - to encrypt the envelop key
+- **canNOT export keys**
 
 ## SQS - Simple Queue Service
 - message queue - distributed - pull based
@@ -284,14 +303,16 @@ https://github.com/mransbro/aws-developer-notes
     - parameter - what will be asked
     - conditions - tests run on parameters provided
     - mapping - to be available to stack eg region
-    - transfer - include snippets sitting outside the template
+    - transfer - include snippets sitting outside the template , specify SAM 
     - resources - mandatory - resources you want to deploy or create
     - outputs - on console or input to another stack
-- SAM - servless app model - for serverless provisionings
+- SAM - serverless app model - for serverless provisionings
     - sam-package - input yaml output sam-template.yaml
     - sam-deploy
 - **nested stack** - template referenced in another template
     - in the resources section
+- **delete entire stack on failure**
+    - to prevent set up "--disable-rollback" flag in CLI and/or "Rollback on failure" to NO on console
 
 ## Kinesis - for streaming data
 - 3 services
@@ -309,6 +330,7 @@ https://github.com/mransbro/aws-developer-notes
 - code pipeline - release management - orchestration
     - **if sees test failure - it will stop**
     - can watch S3 bucket for new zip/jar/war
+    - stops immediately if one stage fails
 - **Terminology**
     - deployment group
     - deployment config - **AppSec file - yaml(EC2) - yaml or json (lambda)**
@@ -340,3 +362,21 @@ https://github.com/mransbro/aws-developer-notes
 - **use small page size** to avoid timeout
 - default max items 100
     - still fetch all, show these many and return
+    
+## AWS security services
+- Shield 
+    - on layer 3 and 4
+    - protect against distributed denial of service attacks
+- WAF
+    - SQL injections
+    - cross site scripting
+    - block IPs based on rules
+- Macie
+    - data loss prevention
+    - uses machine learning to protect sensitive data
+    
+## Random points
+- default region for all SDKs - north virginia - US EAST 1
+- Route 53 - the AWS service which does not use key-value pairs
+- AWS SSO - single sign on - is a separate service - can be connected to active directory
+- x-ray - can be used with - lambda, ELB, API gateway
