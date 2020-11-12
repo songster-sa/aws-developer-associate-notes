@@ -9,22 +9,32 @@ https://github.com/mransbro/aws-developer-notes
 - Users, roles, groups, policy document (json), secret key and access key
 - Roles - provide permissions to resources / services
 - multi factor authentication
+    - for root account SMS MFA is NOT supported (Virtual MFA, Hardware MFA and U2F are supported)
 - **ARN**
 - policies
     - inline - embedded in user/role/group
     - managed - aws managed - can be reused - cannot be customised
     - customised - you create - only resides in your account
 - IAM policy simulator - to test policies before production
+- IAM Policy
+    - principal - person or application - whom the policy is applicable for
+    - resource - objects that policy covers
+    - variables - placeholders - help in single policy behaving differently for each user
+    - condition - for when the policy should be effective
 - **cross account access** can be configured to give user of 1 account access to stuff of another account
+- not for code commit
 
 ## Amazon Cognito - web identity federation
 - used for larger companies
 - cognito is ID broker - it provides seamless experience across all devices
 - types
     - user pools - JWT - manage sign-in and sign-up
-    - identity pool - STS (security token service) API - create unique identities for users and authenticate them with web ID provider
+    - identity pool - STS (security token service) API 
+        - create unique identities for users and authenticate them with web ID provider
+        - only temporary access
     - aws credentials - mapped to IAM role
 - SMPS - system manager parameter store - to store credentials
+    - can store but cannot rotate
 - **API call - STS assume-role-with-web-identity**
 - **user authenticates with FB - FB gives ID token - then use this token to get temp creds via cognito**
 - cognito provides features - 
@@ -36,6 +46,8 @@ https://github.com/mransbro/aws-developer-notes
 - **Price options**
     - on demand - office hours, peaks
     - reserved - steady, predictable, 3yr contract
+        - capacity reserved
+        - 3 types - standard, scheduled, convertible
     - spot - high utilization, when data is not lost
     - dedicated hosts - secure, no multi-tenant virtualization
 - provisions via images (ami = amazon machine image)
@@ -49,6 +61,12 @@ https://github.com/mransbro/aws-developer-notes
 - **Placement groups**
     - Spread Placement group - small num of critical instances - not share underlying hardware hence wont fail together
     - Cluster Placement group - 
+- user data when provided to EC2 instances 
+    - runs only at boot time - when you first time launch the instance
+    - scripts run with root privileges
+- EC2 Auto scaling - new instances
+    - when in VPC - are launched within subnet
+    - can be in ANY AZ but within same region
 
 ## EBS - Elastic Block Storage
 - persistant - if EC2 stopped, no data loss here
@@ -66,15 +84,37 @@ https://github.com/mransbro/aws-developer-notes
     - ALB - on OSI layer 7 - application aware
     - NLB - on OSI layer 4 - extreme performance - million requests / sec
     - Classic - both 4 and 7 - x-forward and sticky session - 504 error when app not responding
+- **one ELB per AZ**
 - logs to show public IP address - use x-forward-for header
+- separate public and private traffic
+- makes instances highly available (obviously)
+- communicates to instances using private IP
+- can connect with Auto Scale groups to provide horizontal scaling
+- can target instances only within a single region
+- cross zone balancing (always on for ALB)
+    - enabled - divide traffic across AZ
+    - disabled - divide traffic only within own AZ
+- ALB access logs - details abt the requests
+    - time, IP, latencies, path, response etc
+- ALB request tracing - 
+- ALB listeners - like rules
+    - for HTTPS listener - deploy certificate, 
+        - SSL termination - node will decrypt request and then forward them down
+        - SSL pass through - downstream nodes will need to decrypt requests
+- ALB errors
+    - 503 - service unavailable - when downstream targets are available / set
+    - 504 - gateway timeout - targets are there but not connected/reachable/responding
+    - 403 - forbidden - WAF not allowing
+    - 500 - internal server error - 
+- ALB can authenticate users using Cognito
     
 ## Route 53 - DNS
 - applicable to EC2, S3, LB
 - limit to 50 domain names
 - types
-    - CNAME - canonical name
+    - CNAME - canonical name - mapping external domains
     - record (address record) - map to IP address
-    - alias - best - chose this in exam over CNAME - free
+    - alias - best - for within AWS resources - free - BUT not for mapping external domains
 - routing policies
     - simple - default - when there is only 1 instance
     - weighted
@@ -118,7 +158,7 @@ https://github.com/mransbro/aws-developer-notes
 - **PUTs by default support max 5GB data**
 - secure data by
     - access (IAM)
-    - ACL
+    - ACL - to control which principals in another account can access a resource
     - bucket policies
     - CORS
     - Transfer Acceleration - use Cloud Front to upload data
@@ -165,6 +205,13 @@ https://github.com/mransbro/aws-developer-notes
 
 ## ECS / ECR - elastic containers service / elastic containers registry
 - buildSpec.yaml file
+- ECR - to store, manage, and deploy Docker container images (uses S3 internally)
+- ECS - to run, stop, and manage Docker containers on a cluster
+- launch types
+    - Fargate launch type - for serverless
+    - EC2 launch types - for more control you can launch the tasks on EC2 too
+- single task vs separate tasks
+    - when containers are launched on single tasks - they share memory
 
 ## Serverless computing - Lambda and friends
 - event driven, API driven
@@ -172,17 +219,22 @@ https://github.com/mransbro/aws-developer-notes
 - scale out, not scale up
 - lambda functions have to be independent
 - **use X-ray to debug** - annotations or indexes in code/data/traces
+    - analyze and debug distributed applications
+    - for performance issues and errors
 - API vs API gateway
     - using API gateway we can configure which event triggers which serverless service
     - urls, http methods, SSL/TLS, targets
 - API caching = API response caching
 - browsers cache against same origin - so AWS uses CORS to change origin (to refresh cache)
 - **Lambda versioning** - use alias
+    - within single alias - you can divide traffic to multiple versions
 - **lambda deployment**
     - zip upload to lambda console
     - copy paste code in lambda ide
     - cloud formation
 - lambda concurrent execution limit 1000
+    - provisioned concurrency - to scale without fluctuations in latency
+    - reserved concurrency - limits the maximum concurrency for the function
 - API gateway errors 
     - **429 - too many requests** - throttle - exponential backoff etc
 - use swagger to convert APIs
@@ -191,6 +243,7 @@ https://github.com/mransbro/aws-developer-notes
     - like a VPN for your account
     - private subnet id
     - security group id , route table, internet gateway, endpoint
+    - VPC Flow logs - 
 
 ## Dynamo DB
 - noSQL - collection(table) - document(row) - key-value pairs
@@ -291,7 +344,7 @@ https://github.com/mransbro/aws-developer-notes
     - rolling - not down but performance hit - rollback
     - rolling with additional batches - no performance hit - no rollback
     - immutable - blue/green - no rollback
-- .config file (yaml) inside .ebextensions (json)
+- .config file (yaml or json) inside .ebextensions folder 
 - **jetty for jboss not supported**
 
 ## Cloud Formation
@@ -316,17 +369,26 @@ https://github.com/mransbro/aws-developer-notes
 
 ## Kinesis - for streaming data
 - 3 services
-     - streams - in shards - retention 24h-7days
-     - firehose - no retention - automated shards
-     - analytics - run sql queries on data
+     - streams - in shards 
+        - retention 24h-7days 
+        - rapidly move data off producers 
+        - realtime processing and analysing
+     - firehose 
+        - no retention - automated shards 
+        - easiest way to load streaming data into data stores and analytics tools
+     - analytics - run sql queries on data (using firehose)
 
 ## CI/CD Services
 - code commit - git repo in aws - src control
     - **set notifications - via cloud watch or SNS**
 - code build - compile build test
+    - set timeouts if takes too long
+    - to debug - run locally using CodeBuild Agent
+    - you cannot ssh into docker where code build runs
 - code deploy - deploy on EC2, lambda etc
     - in place - rolling update
     - blue/green - immutable
+    - cannot provision , can only deploy
 - code pipeline - release management - orchestration
     - **if sees test failure - it will stop**
     - can watch S3 bucket for new zip/jar/war
@@ -354,6 +416,7 @@ https://github.com/mransbro/aws-developer-notes
 ## Cloud watch alarm - 1min/2min detailed monitoring
 
 ## Cloud Trail - API calls monitoring - resource provisioning
+- account-specific history, audit
 
 ## AWS CLI Pagination
 - default page size 1000
@@ -380,3 +443,66 @@ https://github.com/mransbro/aws-developer-notes
 - Route 53 - the AWS service which does not use key-value pairs
 - AWS SSO - single sign on - is a separate service - can be connected to active directory
 - x-ray - can be used with - lambda, ELB, API gateway
+- to deploy SSL/TLS server certificates - use IAM or AWS Certificate Manager
+- to reference VPC stack in another stack
+    - create a cross-stack reference and use the Export output field to flag the value of VPC from the network stack
+    - Then use Fn::ImportValue intrinsic function to import the value of VPC into the web application stack
+- Lambda authorizer - to control access to API
+    - token based ( JWT or Oauth)
+    - request parameter based
+- CloudFront Key Pairs - can ONLY be created by root account
+- Burstable performance instances - T3, T3a, and T2 instances
+    - provide a baseline level of CPU performance with the ability to burst to a higher level
+    - free for a new/recent account, within certain limit
+- IAM supports only one type of resource-based policy - a role trust policy
+    - define who you trust to use this resource (AssumeRole)
+- ACL - to control which principals in another account can access a resource
+- from one default region - to execute a command to stop an EC2 instance in another region 
+    - use --region parameter    
+- X-Ray sampling 
+    - control the amount of data that you record
+    - modify sampling behavior on the fly
+- X-Ray daemon 
+    - listens for traffic on UDP port 2000, and relays it to the AWS X-Ray API
+- API Gateway Usage Plans - who can use which deployed API
+- AWS Systems Manager - 
+    - group systems like EC2, S3, RDS by application
+    - view operational data for monitoring and troubleshooting
+    - take action on your groups of resources
+- You can use X-Ray to collect data across AWS Accounts.
+- Config - logs - resource-specific history, audit, and compliance
+- SAM - open-source framework for building serverless applications
+    - AWS::Serverless::Api - for api gateway
+    - AWS::Serverless::Application
+    - AWS::Serverless::Function - for lambda
+    - AWS::Serverless::HttpApi
+    - AWS::Serverless::LayerVersion
+    - AWS::Serverless::SimpleTable - for dynamoDB
+    - AWS::Serverless::StateMachine
+- AWS Secrets Manager
+    - easily rotate, manage, and retrieve 
+    - database credentials, API keys, and other secrets
+- Cannot use IAM creds for code commit
+- AWS requires approximately 5 weeks of usage data to generate budget forecasts
+- to use AWS budget, you need NOT be part of AWS organisation
+- Access Advisor feature on IAM console - to identify unused roles
+- AWS trusted advisor - help provision resources (following AWS best practices on cost, security, fault tolerance, service limits, and performance)
+- IAM Access Analyser - identify resources that are shared with external entity
+- Amazon inspector - for security and compliance of all apps deployed
+- to limit permissions - AWS org service control policy (SCP), permission boundary
+- API Gateway
+    - stage variables - key-value config atrributes
+    - mapping template - map payload (request-to-request or response-to-response)
+- !FindInMap [ MapName, TopLevelKey, SecondLevelKey ] syntax
+- Access Keys = id + secret 
+    - for CLI and API
+- Key pairs - private and public - digital signature for ssh-ing into EC2
+- to use billing and cost mngmt - you just need access - not root user or anything else
+- dedicate host vs dedicated instances
+    - DI - on VPCs - hardware is dedicated to you - cheaper
+    - DH - SERVER dedicated to your use - costly
+- S3 object lock - write once read many
+- S3 analytics - analyse storage access patterns
+- Exported Output Values in CloudFormation must have unique names within a single Region
+
+
