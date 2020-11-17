@@ -23,6 +23,7 @@ https://github.com/mransbro/aws-developer-notes
     - condition - for when the policy should be effective
 - **cross account access** can be configured to give user of 1 account access to stuff of another account
 - not for code commit
+- --dry-run - to check if you have permissions without making any request - UnauthorisedOperation
 
 ## Amazon Cognito - web identity federation
 - used for larger companies
@@ -38,8 +39,8 @@ https://github.com/mransbro/aws-developer-notes
 - **API call - STS assume-role-with-web-identity**
 - **user authenticates with FB - FB gives ID token - then use this token to get temp creds via cognito**
 - cognito provides features - 
-    - signin signup to your apps
-    - sync of user data across devices 
+    - signin signup to your apps - user pool
+    - sync of user data across devices - **cognito Sync**
 
 ## EC2 - Elastic Compute Cloud
 - types - FIGHT DR MC PIX
@@ -48,7 +49,10 @@ https://github.com/mransbro/aws-developer-notes
     - reserved - steady, predictable, 3yr contract
         - capacity reserved
         - 3 types - standard, scheduled, convertible
-    - spot - high utilization, when data is not lost
+        - by default - zonal instances - per available zone
+        - you can buy regional reserved instances - they DONT reserve capacity
+    - spot - high utilization, when data is not lost 
+        - when interrupts - stop , terminate (default), hibernate - cannot reboot
     - dedicated hosts - secure, no multi-tenant virtualization
 - provisions via images (ami = amazon machine image)
 - provisioned per (by) availability zone
@@ -64,15 +68,18 @@ https://github.com/mransbro/aws-developer-notes
 - user data when provided to EC2 instances 
     - runs only at boot time - when you first time launch the instance
     - scripts run with root privileges
-- EC2 Auto scaling - new instances
+- **EC2 Auto scaling** - new instances - always scales horizontally
     - when in VPC - are launched within subnet
     - can be in ANY AZ but within same region
+    - works with both ALB and NLB
+    - Target Tracking Scaling Policy - 
+    - when set up with Management console - no detailed monitoring
 
 ## EBS - Elastic Block Storage
 - persistant - if EC2 stopped, no data loss here
 - **2 types**
     - General purpose SSD
-    - Provisioned IOPS SSD ->10k IOPS -> high performance
+    - Provisioned IOPS SSD ->10k IOPS -> high performance -> 50:1 is max allowed ratio
 - magnetic disks
     - throughput optimised HDD
     - Cold HDD (file save) -> where data is NOT accessed regularly
@@ -159,7 +166,7 @@ https://github.com/mransbro/aws-developer-notes
 - secure data by
     - access (IAM)
     - ACL - to control which principals in another account can access a resource
-    - bucket policies
+    - bucket policies - resource based policy - mention what resource have access
     - CORS
     - Transfer Acceleration - use Cloud Front to upload data
 - **Tiers**
@@ -244,6 +251,7 @@ https://github.com/mransbro/aws-developer-notes
     - private subnet id
     - security group id , route table, internet gateway, endpoint
     - VPC Flow logs - 
+- AWS Secure token Service - cannot be used with API gateway for authentication
 
 ## Dynamo DB
 - noSQL - collection(table) - document(row) - key-value pairs
@@ -296,6 +304,8 @@ https://github.com/mransbro/aws-developer-notes
     - envelop key / data key - to encrypt data
     - master key (CMK) - to encrypt the envelop key
 - **canNOT export keys**
+- **max data size 4kb** - what u can send to AWS to encrypt
+- **Envelope encryption** you fetch key - the key travels on network - and you use it to encrypt - performance efficient
 
 ## SQS - Simple Queue Service
 - message queue - distributed - pull based
@@ -366,6 +376,11 @@ https://github.com/mransbro/aws-developer-notes
     - in the resources section
 - **delete entire stack on failure**
     - to prevent set up "--disable-rollback" flag in CLI and/or "Rollback on failure" to NO on console
+- intrinsic functions
+    - !FindInMap - returns value based on mapping section
+    - !Ref - value of param or resource
+    - !GetAtt - attribute of a resource
+    - !Sub - substitutes variables in input string
 
 ## Kinesis - for streaming data
 - 3 services
@@ -403,11 +418,13 @@ https://github.com/mransbro/aws-developer-notes
     - before allow traffic vs allow traffic vs after allow traffic
 
 ## Cloud Watch - monitoring and logs
-- **monitors performance of resources**
+- **monitors performance of resources and reports metrics**
 - by default logs stored forever - even after termination
 - **in EC2 - by default monitors host level metrics**
     - n/w, overall disk IO, CPU, status check
     - canNOT see how much space left
+- **in code build** -> no of builds / success failure / duration etc
+- in SQS - ApproximateNumberOfMessageVisible
 - default monitoring
     - in EC2 every 5 min
     - others every 1min
@@ -504,5 +521,5 @@ https://github.com/mransbro/aws-developer-notes
 - S3 object lock - write once read many
 - S3 analytics - analyse storage access patterns
 - Exported Output Values in CloudFormation must have unique names within a single Region
-
+- IAM Database authentication works with MySQL and PostgresSQL
 
