@@ -306,6 +306,7 @@ https://github.com/mransbro/aws-developer-notes
 - **TTL** can be 0sec to 365 days - default is 24hr
 - cannot be used to cache DB data (its for files, pages, videos etc)
 - CloudFront Key Pairs - can ONLY be created by root account
+- HTTPS - can be done end-to-end -> frontend-cloud front-backend
 
 ## ECS / ECR - elastic containers service / elastic containers registry
 - buildSpec.yaml file
@@ -345,6 +346,7 @@ https://github.com/mransbro/aws-developer-notes
 - lambda destinations - eg. output or put msg in SQS
 - to expose to public - 3 ways - create roles for public, ALB, API gateway
 - create 1 alias - divide % traffic to diff versions
+- lambda limits - 
     
 ## X ray
 - **use X-ray to debug** - annotations or indexes in code/data/traces
@@ -358,6 +360,10 @@ https://github.com/mransbro/aws-developer-notes
     - listens for traffic on UDP port 2000, and relays it to the AWS X-Ray API every sec
 - x-ray integration - for lambda
 - You can use X-Ray to collect data across AWS Accounts.
+- target unified account - create a role in it; allow roles in other sub-accounts to assume this role
+- for containers
+    - deploy the agent as side-car
+    - provide IAM task roles to the container
 
 ## API gateway
 - API vs API gateway
@@ -371,10 +377,11 @@ https://github.com/mransbro/aws-developer-notes
 - API gateway provides a pass through to SOAP - no conversions
 - AWS Secure token Service - cannot be used with API gateway for authentication
 - API Gateway - every change needs deployment
-    - stage variables - key-value config atrributes - like env var
+    - stage variables - key-value config attributes - like env var
     - mapping template - map payload (request-to-request or response-to-response)
 - API Gateway Usage Plans - who can use which deployed API
 - canary deployment - deploy 2 gateways with same public URL - divide % traffic to 2 lambdas
+- access control - via sigv4, lambda authorizer, cognito user pool - no STS
 
 ## VPC- virtual private cloud
 - region locked - subnets are per AZ
@@ -403,6 +410,7 @@ https://github.com/mransbro/aws-developer-notes
 - **indexes**
     - local - same primary key, diff sort key - created with table only
     - global - diff primary key, diff sort key - can be created later
+    - The GSI can throttle - provision more RCU and WCU to the GSI
 - **Dynamo DB Streams = change log**
     - stores event data
     - can be used for event triggers
@@ -456,6 +464,9 @@ https://github.com/mransbro/aws-developer-notes
 - **types**
     - standard - best effort - may not be ordered - unlimited T/sec
     - FIFO - ordered - no duplicates - 300T/sec
+        - MessageGroupID
+        - MessageDeduplicateID
+        - ContentBasedDeduplication - This is not a message parameter, but a queue setting.use an SHA-256 hash to generate the message deduplication ID using the body of the message
 - **retention - 1min - 14days - default 4 days**
 - **visibility timeout - <=12hours - default 30 sec (ChangeMessageVisibility API)**
 - **polling**
@@ -496,6 +507,7 @@ https://github.com/mransbro/aws-developer-notes
     - immutable - blue/green - no rollback
 - .config file (yaml or json) inside .ebextensions folder 
 - **jetty for jboss not supported**
+- for HTTPS - update .ebextention/xxx.config , add SSL
 
 ## Cloud Formation
 - **script based provisioning - yaml (preferred) or json**
@@ -512,6 +524,7 @@ https://github.com/mransbro/aws-developer-notes
 - SAM - serverless app model - for serverless provisionings
     - sam-package - input yaml output sam-template.yaml
     - sam-deploy
+    - store template / build on S3
 - **nested stack** - template referenced in another template
     - in the resources section
 - **delete entire stack on failure**
@@ -527,6 +540,7 @@ https://github.com/mransbro/aws-developer-notes
 - !FindInMap [ MapName, TopLevelKey, SecondLevelKey ] syntax
 - Exported Output Values in CloudFormation must have unique names within a single Region
 - template on s3
+- for lambda - u can define whole inline OR zip the whole in S3 and ref that (AWS::Lambda::Function)
 
 ## Kinesis - for streaming data
 - 3 services
@@ -538,22 +552,29 @@ https://github.com/mransbro/aws-developer-notes
         - no retention - automated shards 
         - easiest way to load streaming data into data stores and analytics tools
      - analytics - run sql queries on data (using firehose)
+- massively scalable - can fan out to various endpoints
 
 ## CI/CD Services
 - code commit - git repo in aws - src control
     - **set notifications - via cloud watch or SNS**
+    - repos are automatically encrypted
 - code build - compile build test
     - set timeouts if takes too long
     - to debug - run locally using CodeBuild Agent
     - you cannot ssh into docker where code build runs
+    - if docker push/pull issues -  check IAM permissions
+    - buildspec.yml
 - code deploy - deploy on EC2, lambda etc
     - in place - rolling update
     - blue/green - immutable
+    - warm standby - DR scenario
+    - pilot light - DR scenario
     - cannot provision , can only deploy
 - code pipeline - release management - orchestration
     - **if sees test failure - it will stop**
     - can watch S3 bucket for new zip/jar/war
     - stops immediately if one stage fails
+    - appsec.yml
 - **Terminology**
     - deployment group
     - deployment config - **AppSec file - yaml(EC2) - yaml or json (lambda)**
@@ -576,6 +597,7 @@ https://github.com/mransbro/aws-developer-notes
     - others every 1 min
 - high resolution - every sec - alarms every 10 sec
 - GetMetricsStatistics API
+- encryption - even after months - "associate-kms-key" 
 
 ## Cloud watch alarm - 1min/2min detailed monitoring
 
@@ -587,6 +609,9 @@ https://github.com/mransbro/aws-developer-notes
     - creates config and cred files
 - 1 ec2 - 1 role - many policies
 - Pagination
+    - max-items
+    - page-size
+    - starting-token
 - default page size 1000
     - can give timeout
     - if result size is 2500 - it will make 3 calls internally but show the result altogether
@@ -681,6 +706,12 @@ https://github.com/mransbro/aws-developer-notes
     - credentials file
     - ecs
     - instance profiles / roles
+
+- A service role is the IAM role that Elastic Beanstalk assumes when calling other services on your behalf.
+    - EC2 service role with readonly access to S3 bucket - assigned to EC2
+- S3 has no cache - if role/permissions are removed, takes affect immediately
+- WCU RCU should never be less - choose more if exact not there
+- backend and cache CANNOT be updated in a transaction - at the same time - so invalidate it
 
 ## some architectures
 - LAMP stack - linux, apache server, mysql, php
