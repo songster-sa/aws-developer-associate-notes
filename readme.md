@@ -100,12 +100,15 @@ https://github.com/mransbro/aws-developer-notes
     - Cold HDD (SCI file save) -> where data is NOT accessed regularly - max 250 IOPs - 12:1
     - Standard magnetic-> bootable -> where data is NOT accessed regularly
 - configure encryption while creating EBS volume
+    - supports both in-flight and at-rest
+    - the "default" option is region-specific - if enabled you cannot avoid for a volume
     
 ## ELB - Elastic Load Balancer
 - **types**
     - ALB - on OSI layer 7 - application aware
     - NLB - on OSI layer 4 - extreme performance - million requests / sec
     - Classic - both 4 and 7 - x-forward and sticky session - 504 error when app not responding
+        - legacy ones - mainly used for Classic EC2 instances
 - target groups - for routing traffic by hostname / ip / lambda
 - SNI - to support multiple SSL/TLSs certificates
 - **ELB per AZ; region locked**
@@ -133,6 +136,7 @@ https://github.com/mransbro/aws-developer-notes
 - ALB can authenticate users using Cognito
 - connection draining - 300sec by default - when marked unhealthy and terminating
 - NLB exposes public static IP whereas ALB and CLB exposes DNS URLs
+- may distribute load based on EC2 instance types as well - low type less load
     
 ## Route 53 - DNS
 - applicable to EC2, S3, LB
@@ -206,6 +210,7 @@ https://github.com/mransbro/aws-developer-notes
 - in memory cache - RDS for caching
 - read scaling, write scaling, multi az
 - user session store - store session in cache
+- for read-heavy AND compute-intensive
 - **types**
     - mem cache - simple - high performance
         - no persistence - no backup
@@ -235,7 +240,7 @@ https://github.com/mransbro/aws-developer-notes
 - **unlimited storage**
 - **0 bytes to 5 TB**
 - **globally unique DNS**
-- **Read (immediately) after write for new PUTs objects**
+- **Read (immediately) after write for new PUTs objects** - GET-PUT-GET may not work
 - **Eventually consistent for modify / overwrites via PUTs and DELETEs**
 - **PUTs by default support max 5GB data** - use multi-part upload for more 
 - for file more than 100MB - multi part is any recommended
@@ -285,7 +290,7 @@ https://github.com/mransbro/aws-developer-notes
 - hosting static website - 403 error - as buckets are private
     - make bucket public
     - make bucket policy
-- S3 object lock - write once read many - WORM
+- S3 object lock - write once read many - WORM - diff from "object locking" (when 2 PUTs come at the same time)
 - S3 analytics - analyse storage access patterns
 - Athena - Serverless data analysis service allowing you to query data in S3
 - S3 Select / Glacier Select - select columns in csv
@@ -322,6 +327,7 @@ https://github.com/mransbro/aws-developer-notes
     - spread
 - single task vs separate tasks
     - when containers are launched on single tasks - they share memory
+- to change clusted - update ECS_CLUSTER parameter in /etc/ecs/ecs.config
 
 ## Serverless computing - Lambda
 - event driven, API driven
@@ -337,16 +343,18 @@ https://github.com/mransbro/aws-developer-notes
 - lambda concurrent execution limit 1000
     - provisioned concurrency - to scale without fluctuations in latency
     - reserved concurrency - limits the maximum concurrency for the function
-- Lambda authorizer - to control access to API
+- Lambda authorizer - to control access to API - 3rd party authorization strategies
     - token based ( JWT or Oauth)
     - request parameter based
 - execution env = temp runtime env
+- execution context = things done above/before/outside the function handler
 - 4KB limit on env var
 - lambda layers - to decouple dependencies
 - lambda destinations - eg. output or put msg in SQS
 - to expose to public - 3 ways - create roles for public, ALB, API gateway
 - create 1 alias - divide % traffic to diff versions
-- lambda limits - 
+- lambda limits - unzipped <=250MB; /tmp 512MB ; env var 4KB
+- configure auto-scaling to manage provisioned concurrency on a schedule
     
 ## X ray
 - **use X-ray to debug** - annotations or indexes in code/data/traces
@@ -354,7 +362,7 @@ https://github.com/mransbro/aws-developer-notes
     - for performance issues and errors
     - visualize the whole request trace
 - X-Ray sampling 
-    - control the amount of data that you record
+    - control the amount of data that you record - input from client or application
     - modify sampling behavior on the fly
 - X-Ray daemon - "agent" that needs to be running on ec2
     - listens for traffic on UDP port 2000, and relays it to the AWS X-Ray API every sec
@@ -382,6 +390,9 @@ https://github.com/mransbro/aws-developer-notes
 - API Gateway Usage Plans - who can use which deployed API
 - canary deployment - deploy 2 gateways with same public URL - divide % traffic to 2 lambdas
 - access control - via sigv4, lambda authorizer, cognito user pool - no STS
+- has not user pools or security groups
+- to prevent unauthorised domain - restrict CORS
+- 501 - not implemented - check x-ray
 
 ## VPC- virtual private cloud
 - region locked - subnets are per AZ
@@ -425,6 +436,9 @@ https://github.com/mransbro/aws-developer-notes
 - **performance improvements**
     - small parallel scans
     - small page size (more queries but faster with no time outs)
+    - DAX for read-heavy
+    - Global tables
+    - choose eventually consistent over strongly consistent
 - **query is more efficient in general**
 - **BatchGetItem API for more efficient queries on large items**
 - **Provisioned throughput**
@@ -439,9 +453,13 @@ https://github.com/mransbro/aws-developer-notes
     - reduced request frequency
 - optimistic concurrency - for conditional writes
 - scales horizontally
+- backups
+    - automated - but we dont have access to it
+    - hence use - AWS Glue, Hive + EMR, Data pipeline
 
 ## KMS - Key Management Service
 - solution to create and control your encryption keys
+- KMS data size limit - 4KB
 - **encryption keys are regional**
 - **KMS is multi tenant whereas CloudHSM is dedicated hardware solutions**
 - aws kms encrypt - command to encrypt
@@ -468,6 +486,7 @@ https://github.com/mransbro/aws-developer-notes
         - MessageDeduplicateID
         - ContentBasedDeduplication - This is not a message parameter, but a queue setting.use an SHA-256 hash to generate the message deduplication ID using the body of the message
 - **retention - 1min - 14days - default 4 days**
+    - change via queue message retention setting
 - **visibility timeout - <=12hours - default 30 sec (ChangeMessageVisibility API)**
 - **polling**
     - short polling - response every time - whether empty or not
@@ -475,7 +494,8 @@ https://github.com/mransbro/aws-developer-notes
 - not supported in all regions - only in 4
 - 1st million requests are free - then 0.50 
 - Delay Q - msg stays invisible form 0-900sec
-- for msg >256KB to 2GB - use S3
+- for msg >256KB to 2GB - use S3 or SQS Extended Clients
+    - no multi part API / concept
 - **use with SNS to "fan out" msgs to multiple queues**
 
 ## SWF -Simple Workflow Service
@@ -551,6 +571,7 @@ https://github.com/mransbro/aws-developer-notes
      - firehose 
         - no retention - automated shards 
         - easiest way to load streaming data into data stores and analytics tools
+        - sink types/destinations - S3, Redshift, ElasticSearch, Splunk
      - analytics - run sql queries on data (using firehose)
 - massively scalable - can fan out to various endpoints
 
@@ -603,6 +624,9 @@ https://github.com/mransbro/aws-developer-notes
 
 ## Cloud Trail - API calls monitoring - resource provisioning
 - account-specific history, audit
+- by default - logs are encrypted using SSE-S3
+- by default it tracks only bucket-level action - to track object-level you need S3 Data events
+- Organization trail - log all events for all accounts in the aws org created
 
 ## AWS CLI 
 - personal machine - aws configure | otherwise use IAM roles 
@@ -712,6 +736,8 @@ https://github.com/mransbro/aws-developer-notes
 - S3 has no cache - if role/permissions are removed, takes affect immediately
 - WCU RCU should never be less - choose more if exact not there
 - backend and cache CANNOT be updated in a transaction - at the same time - so invalidate it
+- when need to use SSH key pair across region - generate public key and import in all region instances
+- fargate and lambda both are serverless - hence when dealing with rest API, you they alone not sufficient, you need API Gateway
 
 ## some architectures
 - LAMP stack - linux, apache server, mysql, php
