@@ -344,10 +344,12 @@ https://github.com/mransbro/aws-developer-notes
     - copy paste code in lambda ide
     - cloud formation
 - **lambda concurrent execution limit 1000**
+    - out of 1000 - 100 is kept for unreserved account concurency - so we can set max 900
     - provisioned concurrency - to scale without fluctuations in latency
     - reserved concurrency - limits the maximum concurrency for the function
 - **concurrent execution = (event or request per second) X (execution duration)**
 - Lambda authorizer - to control access to API - 3rd party authorization strategies
+    - 2 types : 
     - token based ( JWT or Oauth)
     - request parameter based
 - execution env = temp runtime env
@@ -370,6 +372,7 @@ https://github.com/mransbro/aws-developer-notes
     - output path - to decide / filter what you want to send to next step
 - state machines - task, choice, fail, succeed, pass, wait, parallel, map
     - you can have activities in them
+- InvokeAsync - is deprecated - so use Invoke API with EVENT invoke type - for async call
 
 ## X ray
 - **use X-ray to debug** - annotations or indexes in code/data/traces
@@ -394,6 +397,13 @@ https://github.com/mransbro/aws-developer-notes
 - with lambda - env variables
     - AWS_XRAY_CONTEXT_MISSING (default LOG_ERROR)
     - _X_AMZN_TRACE_ID
+- segments - define fields to include in trace
+- subsegments - for granular timing details
+    - when resources dont provide their own segments, u can write subsegments
+    - these are convered to "inferred segments" by x-ray
+- both segments and subsegments may contain :
+    - metadata - for details of objects and array fields
+    - annotations - for indexes for filter expressions
 
 ## API gateway
 - API vs API gateway
@@ -430,7 +440,8 @@ https://github.com/mransbro/aws-developer-notes
 - like a VPN for your account
 - private subnet id
 - security group id and network ACL
-- route table, 
+- route table - default limit of 200 routes
+    - a subnet can be part of one route at a time (but 1 table can have many subnets)
 - vpc endpoint gateway - private subnet to connect to public aws resources like S3 and dynamoDB
 - internet gateway - helps public subnet to connect to internet
 - NAT gateway - helps private subnet to connect to internet - as it itself sits in public subnet
@@ -450,9 +461,10 @@ https://github.com/mransbro/aws-developer-notes
     - composite = primary key + sort key
 - primary key is unique ; sort key is a sequence eg date
 - **indexes**
+    - **when set, GSI capacity units takes precedence over the table's capacity**
     - local - same primary key, diff sort key - created with table only
     - global - diff primary key, diff sort key - can be created later
-    - The GSI can throttle - provision more RCU and WCU to the GSI
+    - The GSI can throttle - provision more RCU and WCU to the GSI - 
     - sparse index - only written when sort key present in an item
 - **Dynamo DB Streams = change log**
     - stores event data
@@ -559,10 +571,13 @@ https://github.com/mransbro/aws-developer-notes
     - rolling - not down but performance hit - rollback
     - rolling with additional batches - no performance hit - no rollback
     - immutable - blue/green - no rollback
-- .config file (yaml or json) inside .ebextensions folder 
+- .config file (yaml or json) inside .ebextensions folder  - for configurations
+- .yaml file - for env variables
 - **jetty for jboss not supported**
 - for HTTPS - update .ebextention/xxx.config , add SSL
 - not for lambda deployment
+- can deploy war or zip -> not tar
+- command "eb deploy"
 
 ## Cloud Formation
 - **script based provisioning - yaml (preferred) or json**
@@ -596,6 +611,7 @@ https://github.com/mransbro/aws-developer-notes
 - Exported Output Values in CloudFormation must have unique names within a single Region
 - template on s3
 - for lambda - u can define whole inline OR zip the whole in S3 and ref that (AWS::Lambda::Function)
+- code : ->zipFile : -> inline code for lambda
 
 ## Kinesis - for streaming data
 - 3 services
@@ -614,6 +630,9 @@ https://github.com/mransbro/aws-developer-notes
 - code commit - git repo in aws - src control
     - **set notifications - via cloud watch or SNS**
     - repos are automatically encrypted
+    - create cc repo - clone git repo - push to cc repo
+    - updateDefaultBranch - only for branch name
+    - getBranch - to get details of the branch
 - code build - compile build test
     - set timeouts if takes too long
     - to debug - run locally using CodeBuild Agent
@@ -639,6 +658,7 @@ https://github.com/mransbro/aws-developer-notes
 - **Hooks - defines actions to be done at specific points in the deployment lifecyle**
     - application start vs validate service
     - before allow traffic vs allow traffic vs after allow traffic
+- canary vs linear deployment - both can shift traffic in parts - but later uses only version
 
 ## Cloud Watch - monitoring and logs
 - **monitors performance of resources and reports metrics**
