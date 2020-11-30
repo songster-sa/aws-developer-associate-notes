@@ -185,6 +185,7 @@ https://github.com/mransbro/aws-developer-notes
 
 ## Aurora
 - supports postgres and MySQL
+- is like RDS - no flexible schema
 - very cloud/high optimised
 - storage automatically grows - auto scalling
 - 15 read replicas
@@ -221,8 +222,8 @@ https://github.com/mransbro/aws-developer-notes
     - Redis - leader boards 
         - sorting - like RDS 
         - multi az - auto failover
-        - read replicas
-        - persisted 
+        - **read replicas**
+        - **persisted**
         - stateful
         - encryption - at rest / in transit ( redis auth)
 - strategies
@@ -312,6 +313,8 @@ https://github.com/mransbro/aws-developer-notes
 - cannot be used to cache DB data (its for files, pages, videos etc)
 - CloudFront Key Pairs - can ONLY be created by root account
 - HTTPS - can be done end-to-end -> frontend-cloud front-backend
+    - Viewer Protocol Policy
+    - Origin Protocol Policy
 
 ## ECS / ECR - elastic containers service / elastic containers registry
 - buildSpec.yaml file
@@ -332,7 +335,7 @@ https://github.com/mransbro/aws-developer-notes
 ## Serverless computing - Lambda
 - event driven, API driven
 - node.js, python, java, c#, go
-- inc RAM - when more than 1 CPU thenuse multi threading
+- inc RAM - when more than 1 CPU then use multi threading
 - lambda functions have to be independent
 - **Lambda versioning** - use alias
     - within single alias - you can divide traffic to multiple versions
@@ -340,9 +343,10 @@ https://github.com/mransbro/aws-developer-notes
     - zip upload to lambda console
     - copy paste code in lambda ide
     - cloud formation
-- lambda concurrent execution limit 1000
+- **lambda concurrent execution limit 1000**
     - provisioned concurrency - to scale without fluctuations in latency
     - reserved concurrency - limits the maximum concurrency for the function
+- **concurrent execution = (event or request per second) X (execution duration)**
 - Lambda authorizer - to control access to API - 3rd party authorization strategies
     - token based ( JWT or Oauth)
     - request parameter based
@@ -355,12 +359,24 @@ https://github.com/mransbro/aws-developer-notes
 - create 1 alias - divide % traffic to diff versions
 - lambda limits - unzipped <=250MB; /tmp 512MB ; env var 4KB
 - configure auto-scaling to manage provisioned concurrency on a schedule
-    
+- Exceptions
+    - InvalidParameterValueException - when you use CLI and any parameter is invalid - like role or something
+    - CodeStorageExceededException
+    - ResourceConflictException
+    - ServiceException - for other internal errors in Lambda Service
+- Step functions
+    - input path and parameters
+    - result path - to decide on next step
+    - output path - to decide / filter what you want to send to next step
+- state machines - task, choice, fail, succeed, pass, wait, parallel, map
+    - you can have activities in them
+
 ## X ray
 - **use X-ray to debug** - annotations or indexes in code/data/traces
     - analyze and debug distributed applications
     - for performance issues and errors
     - visualize the whole request trace
+    - works with ec2, ecs, lambda, beanstalk
 - X-Ray sampling 
     - control the amount of data that you record - input from client or application
     - modify sampling behavior on the fly
@@ -372,15 +388,23 @@ https://github.com/mransbro/aws-developer-notes
 - for containers
     - deploy the agent as side-car
     - provide IAM task roles to the container
+- with SDK
+    - AWS_XRAY_TRACING_NAME
+    - AwS_XRAY_DEBUG_MODE
+- with lambda - env variables
+    - AWS_XRAY_CONTEXT_MISSING (default LOG_ERROR)
+    - _X_AMZN_TRACE_ID
 
 ## API gateway
 - API vs API gateway
     - using API gateway we can configure which event triggers which serverless service
     - urls, http methods, SSL/TLS, targets
 - API gateway caching = API response caching = stage cache
+    - Cache-Control:max-age=0 -> to fetch fresh everytime - but should "Require Authorization" as well
 - browsers cache against same origin - so AWS uses CORS to change origin (to refresh cache)
 - API gateway errors 
     - **429 - too many requests** - throttle - exponential backoff etc
+    - **504 - gateway timeout - integration failure/timeout - lambda has been running for more than 29 seconds**
 - use swagger to convert APIs
 - API gateway provides a pass through to SOAP - no conversions
 - AWS Secure token Service - cannot be used with API gateway for authentication
@@ -393,6 +417,13 @@ https://github.com/mransbro/aws-developer-notes
 - has not user pools or security groups
 - to prevent unauthorised domain - restrict CORS
 - 501 - not implemented - check x-ray
+- integration types
+    - lambda proxy integration - AWS_PROXY
+    - lambda custom integration - AWS
+    - HTTP proxy integration - HTTP_PROXY
+    - HTTP custom integration - HTTP
+    - mock integration - MOCK
+- enable "active-tracing" to support xray and send incoming requests and traces to xray
 
 ## VPC- virtual private cloud
 - region locked - subnets are per AZ
@@ -422,11 +453,12 @@ https://github.com/mransbro/aws-developer-notes
     - local - same primary key, diff sort key - created with table only
     - global - diff primary key, diff sort key - can be created later
     - The GSI can throttle - provision more RCU and WCU to the GSI
+    - sparse index - only written when sort key present in an item
 - **Dynamo DB Streams = change log**
     - stores event data
-    - can be used for event triggers
+    - **can be used for event triggers**
     - stores for 24hr only
-    - usually used with lambda
+    - **usually used with lambda**
     - 4 options - keys only, new image, old image, both
 - **operations**
     - query - by partition key
@@ -471,6 +503,8 @@ https://github.com/mransbro/aws-developer-notes
 - **canNOT export keys**
 - **max data size 4kb** - what u can send to AWS to encrypt
 - **Envelope encryption** you fetch key - the key travels on network - and you use it to encrypt - performance efficient
+- GenerateDataKey - returns encrypted data key and plain text data key as well
+- GenerateDataKeyWithoutPlainText - only returns encrypted data key
 
 ## SQS - Simple Queue Service
 - message queue - distributed - pull based
@@ -528,6 +562,7 @@ https://github.com/mransbro/aws-developer-notes
 - .config file (yaml or json) inside .ebextensions folder 
 - **jetty for jboss not supported**
 - for HTTPS - update .ebextention/xxx.config , add SSL
+- not for lambda deployment
 
 ## Cloud Formation
 - **script based provisioning - yaml (preferred) or json**
@@ -738,6 +773,11 @@ https://github.com/mransbro/aws-developer-notes
 - backend and cache CANNOT be updated in a transaction - at the same time - so invalidate it
 - when need to use SSH key pair across region - generate public key and import in all region instances
 - fargate and lambda both are serverless - hence when dealing with rest API, you they alone not sufficient, you need API Gateway
+
+- AWS greengrass
+- AWS AppSync
+- Websockets
+- GraphQL - graph query language
 
 ## some architectures
 - LAMP stack - linux, apache server, mysql, php
