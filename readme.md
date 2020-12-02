@@ -1,6 +1,6 @@
-# AWS Developer Associate Exam Notes 2019-2020
+# AWS Developer Associate Exam Notes 2020
 
-Based on Udemy course by aCloudGuru (Ryan) and Stephane Marek's course, own research and practise tests.
+Based on Udemy course by aCloudGuru (Ryan) and Stephane Maarek's course, own research and practise tests.
 The topics on which most questions are based are highlighted in bold.
 Some references :
 https://github.com/mransbro/aws-developer-notes
@@ -8,9 +8,12 @@ https://github.com/mransbro/aws-developer-notes
 ## IAM - Identity Access Manager
 - Users, roles, groups, policy document (json), secret key and access key
 - Roles - provide permissions to resources / services
+     - instance roles
+     - service roles
+     - task roles
 - multi factor authentication
     - for root account SMS MFA is NOT supported (Virtual MFA, Hardware MFA and U2F are supported)
-- **ARN**
+- ARN
 - policies
     - inline - embedded in user/role/group
     - managed - aws managed - can be reused - cannot be customised
@@ -24,6 +27,9 @@ https://github.com/mransbro/aws-developer-notes
 - **cross account access** can be configured to give user of 1 account access to stuff of another account
 - not for code commit
 - --dry-run - to check if you have permissions without making any request - UnauthorisedOperation
+- there are only 2 access types 
+    - programatic access - for usual CLI, SDK, application access
+    - management console access 
 
 ## Amazon Cognito - web identity federation
 - used for larger companies
@@ -78,7 +84,7 @@ https://github.com/mransbro/aws-developer-notes
     - works with both ALB and NLB
     - Scaling Policies
         - target tracking - on averages
-        - simple/step scaling
+        - simple/step scaling - on defined throughput
         - scheduled actions
     - when set up with Management console - no detailed monitoring
     - cooldown periods
@@ -157,6 +163,7 @@ https://github.com/mransbro/aws-developer-notes
 
 ## RDS - Relational Database Service
 - OLTP - online transaction processing
+- auto scaling option available
 - can scale both horizontally and vertically ??
 - aws supports - mysql, mssql, oracle, postgres, aurora,  mariaDB
 - when created- you get DNS endpoint (good for DR)
@@ -173,9 +180,9 @@ https://github.com/mransbro/aws-developer-notes
     - at rest(KMS) or in-flight(SSL certificate)
 - if DB encrypted, backup encrypted too
 - but we can encrypt an unencrypted snapshot by copying as encrypted
-- Multi AZ - Synchronous replica
+- Multi AZ - **Synchronous** replica
     - stand by DB - for fail over / DR
-- Read Replica - Asynchronous replica 
+- Read Replica - **Asynchronous** replica 
     - only reads - performance - scaling out - max 5
     - can be within AZ, cross AZ, cross region
     - eventually consistent
@@ -194,7 +201,7 @@ https://github.com/mransbro/aws-developer-notes
 - self healing
 - writer endpoint = master
 - reader endpoints - connection load balancing
-- aurora serverless
+- aurora serverless - diff flavour
 - global aurora 
     - cross region read replicas
     - global database 
@@ -246,7 +253,7 @@ https://github.com/mransbro/aws-developer-notes
 - **PUTs by default support max 5GB data** - use multi-part upload for more 
 - for file more than 100MB - multi part is any recommended
 - bucket names are global but buckets are region resource
-- no concept of directories - just key names with slashes
+- no concept of directories or folders - just key names with slashes
 - secure data by
     - user based - access (IAM)
     - resource based - bucket policies - resource based policy - mention what resource/users have access
@@ -288,7 +295,7 @@ https://github.com/mransbro/aws-developer-notes
 - can fetch a private object via cloud front - Signed URL / Signed Cookies / origin access identity
 - versioning - enable-disable - (null-wont loose previous objects) - delete marker
 - S2 access logs; MFA delete
-- hosting static website - 403 error - as buckets are private
+- hosting static website - 403 (access denied) error - as buckets are private
     - make bucket public
     - make bucket policy
 - S3 object lock - write once read many - WORM - diff from "object locking" (when 2 PUTs come at the same time)
@@ -328,9 +335,9 @@ https://github.com/mransbro/aws-developer-notes
     - binpack
     - random
     - spread
-- single task vs separate tasks
+- single task vs separate task definitions
     - when containers are launched on single tasks - they share memory
-- to change clusted - update ECS_CLUSTER parameter in /etc/ecs/ecs.config
+- to change cluster - update ECS_CLUSTER parameter in /etc/ecs/ecs.config
 
 ## Serverless computing - Lambda
 - event driven, API driven
@@ -342,9 +349,9 @@ https://github.com/mransbro/aws-developer-notes
 - **lambda deployment**
     - zip upload to lambda console
     - copy paste code in lambda ide
-    - cloud formation
+    - cloud formation - inline or zip the whole in S3 and refer
 - **lambda concurrent execution limit 1000**
-    - out of 1000 - 100 is kept for unreserved account concurency - so we can set max 900
+    - out of 1000 - 100 is kept for unreserved account concurrency - so we can set max 900
     - provisioned concurrency - to scale without fluctuations in latency
     - reserved concurrency - limits the maximum concurrency for the function
 - **concurrent execution = (event or request per second) X (execution duration)**
@@ -379,14 +386,14 @@ https://github.com/mransbro/aws-developer-notes
     - analyze and debug distributed applications
     - for performance issues and errors
     - visualize the whole request trace
-    - works with ec2, ecs, lambda, beanstalk
+    - works with ec2, ecs, lambda, beanstalk - ie both serverless and servers
 - X-Ray sampling 
     - control the amount of data that you record - input from client or application
     - modify sampling behavior on the fly
 - X-Ray daemon - "agent" that needs to be running on ec2
     - listens for traffic on UDP port 2000, and relays it to the AWS X-Ray API every sec
 - x-ray integration - for lambda
-- You can use X-Ray to collect data across AWS Accounts.
+- You can use X-Ray to collect data across AWS Accounts. - nothing to enable - its by default
 - target unified account - create a role in it; allow roles in other sub-accounts to assume this role
 - for containers
     - deploy the agent as side-car
@@ -400,7 +407,7 @@ https://github.com/mransbro/aws-developer-notes
 - segments - define fields to include in trace
 - subsegments - for granular timing details
     - when resources dont provide their own segments, u can write subsegments
-    - these are convered to "inferred segments" by x-ray
+    - these are converted to "inferred segments" by x-ray
 - both segments and subsegments may contain :
     - metadata - for details of objects and array fields
     - annotations - for indexes for filter expressions
@@ -410,7 +417,7 @@ https://github.com/mransbro/aws-developer-notes
     - using API gateway we can configure which event triggers which serverless service
     - urls, http methods, SSL/TLS, targets
 - API gateway caching = API response caching = stage cache
-    - Cache-Control:max-age=0 -> to fetch fresh everytime - but should "Require Authorization" as well
+    - Cache-Control:max-age=0 -> to fetch fresh every time - but should "Require Authorization" as well
 - browsers cache against same origin - so AWS uses CORS to change origin (to refresh cache)
 - API gateway errors 
     - **429 - too many requests** - throttle - exponential backoff etc
@@ -424,7 +431,7 @@ https://github.com/mransbro/aws-developer-notes
 - API Gateway Usage Plans - who can use which deployed API
 - canary deployment - deploy 2 gateways with same public URL - divide % traffic to 2 lambdas
 - access control - via sigv4, lambda authorizer, cognito user pool - no STS
-- has not user pools or security groups
+- has no user pools or security groups of its own
 - to prevent unauthorised domain - restrict CORS
 - 501 - not implemented - check x-ray
 - integration types
@@ -490,6 +497,7 @@ https://github.com/mransbro/aws-developer-notes
         - 5kb/4kb = 1.2 = considered as 2 not 1 (whole number) ??
     - WCU - write throughput - 1KB write
     - error when throughput exceeds - 400 - ProvisionedThroughputExceededException
+    - applied per table
 - **DAX - Dynamo Acceleration - highly available, in-memory cache, only write through**
 - **when overloaded**
     - client retry
@@ -539,7 +547,7 @@ https://github.com/mransbro/aws-developer-notes
     - long polling - response only when data or timeout (**20sec**) - efficient repeated polling
 - not supported in all regions - only in 4
 - 1st million requests are free - then 0.50 
-- Delay Q - msg stays invisible form 0-900sec
+- Delay Q - msg stays invisible from 0-900sec
 - for msg >256KB to 2GB - use S3 or SQS Extended Clients
     - no multi part API / concept
 - **use with SNS to "fan out" msgs to multiple queues**
@@ -556,26 +564,31 @@ https://github.com/mransbro/aws-developer-notes
 - Topic - group of recipients
 - multi AZ
 - publish subscribe
-- Synchronous
+- **Synchronous**
 
 ## SES - Simple Email Service
 - for marketing emails
 - on receive reply - you can trigger lambda
-- Asynchronous
+- **Asynchronous**
 - no subscription required
 
 ## Elastic BeanStalk
 - PAAS - provisioning as a service
 - **Deployment Policies**
     - All at once - app down - rollback
-    - rolling - not down but performance hit - rollback
-    - rolling with additional batches - no performance hit - no rollback
-    - immutable - blue/green - no rollback
+    - rolling - not down but performance hit - rollback - default
+    - rolling with additional batches - no performance hit - no rollback - deploy on both old and new - in the end terminate the NEW
+    - immutable - temp ASG is created with new instances - later these instances are moved to origin ASG
+        - no rollback - deploy only on new and in the end terminate the OLD
+        - traffic may flow to both for a short time
+    - blue/green - the whole env is new = DNS is changed - traffic will flow on one at a time
+        - no rollback - deploy only on new and in the end terminate the OLD
+        - **feasible only when DB is outside beanstalk env**
 - .config file (yaml or json) inside .ebextensions folder  - for configurations
 - .yaml file - for env variables
 - **jetty for jboss not supported**
 - for HTTPS - update .ebextention/xxx.config , add SSL
-- not for lambda deployment
+- **not for lambda deployment** - use cloud formation
 - can deploy war or zip -> not tar
 - command "eb deploy"
 
@@ -596,7 +609,7 @@ https://github.com/mransbro/aws-developer-notes
     - sam-deploy
     - store template / build on S3
 - **nested stack** - template referenced in another template
-    - in the resources section
+    - **in the resources section**
 - **delete entire stack on failure**
     - to prevent set up "--disable-rollback" flag in CLI and/or "Rollback on failure" to NO on console
 - intrinsic functions
@@ -616,7 +629,7 @@ https://github.com/mransbro/aws-developer-notes
 ## Kinesis - for streaming data
 - 3 services
      - streams - in shards 
-        - retention 24h-7days 
+        - **retention 24h-7days** 
         - rapidly move data off producers 
         - realtime processing and analysing
      - firehose 
@@ -642,6 +655,8 @@ https://github.com/mransbro/aws-developer-notes
 - code deploy - deploy on EC2, lambda etc
     - in place - rolling update
     - blue/green - immutable
+    - all at one ; half at a time; one at a time - combinations with above 2 deployment strategies
+    - linear ; canary ; all at one - traffic flow
     - warm standby - DR scenario
     - pilot light - DR scenario
     - cannot provision , can only deploy
@@ -658,14 +673,14 @@ https://github.com/mransbro/aws-developer-notes
 - **Hooks - defines actions to be done at specific points in the deployment lifecyle**
     - application start vs validate service
     - before allow traffic vs allow traffic vs after allow traffic
-- canary vs linear deployment - both can shift traffic in parts - but later uses only version
+- canary vs linear deployment - both can shift traffic in parts - 2 increments u define vs equal intervals over time
 
 ## Cloud Watch - monitoring and logs
 - **monitors performance of resources and reports metrics**
 - by default logs stored forever - even after termination
 - **in EC2 - by default monitors host level metrics**
     - n/w, overall disk IO, CPU, status check
-    - canNOT see how much space left
+    - canNOT see how much space left - no RAM stats
 - **in code build** -> no of builds / success failure / duration etc
 - in SQS - ApproximateNumberOfMessageVisible
 - default monitoring
@@ -673,7 +688,7 @@ https://github.com/mransbro/aws-developer-notes
     - others every 1 min
 - high resolution - every sec - alarms every 10 sec
 - GetMetricsStatistics API
-- encryption - even after months - "associate-kms-key" 
+- **encryption - even after months - "associate-kms-key"**
 
 ## Cloud watch alarm - 1min/2min detailed monitoring
 
@@ -705,7 +720,7 @@ https://github.com/mransbro/aws-developer-notes
 ## AWS security services
 - Shield 
     - on layer 3 and 4
-    - protect against distributed denial of service attacks
+    - protect against distributed denial of service attacks - by default amazon secures this for all services
 - WAF
     - SQL injections
     - cross site scripting
@@ -794,9 +809,9 @@ https://github.com/mransbro/aws-developer-notes
 - when need to use SSH key pair across region - generate public key and import in all region instances
 - fargate and lambda both are serverless - hence when dealing with rest API, you they alone not sufficient, you need API Gateway
 
-- AWS greengrass
-- AWS AppSync
-- Websockets
+- AWS greengrass - IoT - operate offline, act locally, secure comm
+- AWS AppSync - for GraphQL - manage mobile data when offline
+- Websockets - bi-directional comm API
 - GraphQL - graph query language
 
 ## some architectures
