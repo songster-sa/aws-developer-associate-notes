@@ -300,10 +300,10 @@ https://github.com/mransbro/aws-developer-notes
     - Regular S3 - high redundancy
     - S3-IA - infrequent access - charged per retrieval
     - S3-one zone IA - stored in 1AZ - cost 20% less
-    - Reduced redundancy - when data can be recreated
+    - Reduced redundancy - when data can be recreated - almost depricated - same as one zone IA
     - Glacier - archival use - very cheap -very infrequent - takes 3-5hr to retrieve
     - Intelligent tier - for unkown patterns (2 subtypes - frequent and infrequent)
-- S3 licycle rules
+- S3 lifecycle rules
     - transition actions
     - expiration actions
 - **data is private by default - public access is forbidden by default**
@@ -763,9 +763,11 @@ https://github.com/mransbro/aws-developer-notes
     - on layer 3 and 4
     - protect against distributed denial of service attacks - by default amazon secures this for all services
 - WAF
+    - layer 7 aware
+    -  monitors requests on clout front, ALB, API gateway
     - SQL injections
     - cross site scripting
-    - block IPs based on rules
+    - block IPs based on rules (ip, country, header values, strings in requests)
 - Macie
     - data loss prevention
     - uses machine learning to protect sensitive data
