@@ -5,6 +5,42 @@ The topics on which most questions are based are highlighted in bold.
 Some references :
 https://github.com/mransbro/aws-developer-notes
 
+## Contents
+- [IAM - Identity Access Manager](#IAM---Identity-Access-Manager)
+- [Amazon Cognito](#Amazon-Cognito---web-identity-federation)
+- [EC2 - Elastic Compute Cloud](#EC2---Elastic-Compute-Cloud)
+- [EBS - Elastic Block Storage](#EBS---Elastic-Block-Storage)
+- [ELB - Elastic Load Balancer](#ELB---Elastic-Load-Balancer)
+- [Route 53 - DNS](#Route-53---DNS)
+- [RDS - Relational Database Service](#RDS---Relational-Database-Service)
+- [Aurora](#Aurora)
+- [Data warehousing](#Data-warehousing)
+- [Elastic Cache](#Elastic-Cache)
+- [S3 - Simple Storage Service](#S3---Simple-Storage-Service)
+- [Cloud Front - CDN](#Cloud-Front---CDN)
+- [ECS / ECR](#ECS-/-ECR)
+- [Lambda](#Serverless-computing---Lambda)
+- [X ray](#X-ray)
+- [API gateway](#API-gateway)
+- [VPC- virtual private cloud](#VPC--virtual-private-cloud)
+- [Dynamo DB](#Dynamo-DB)
+- [KMS - Key Management Service](#KMS---Key-Management-Service)
+- [SQS - Simple Queue Service](#SQS---Simple-Queue-Service)
+- [SWF -Simple Workflow Service](#SWF--Simple-Workflow-Service)
+- [SNS - Simple Notification Service](#SNS---Simple-Notification-Service)
+- [SES - Simple Email Service](#SES---Simple-Email-Service)
+- [Elastic BeanStalk](#Elastic-BeanStalk)
+- [Cloud Formation](#Cloud-Formation)
+- [Kinesis](#Kinesis)
+- [CI/CD Services](#CI/CD-Services)
+- [Cloud Watch](#Cloud-Watch)
+- [Cloud Trail](#Cloud-Trail)
+- [AWS CLI](#AWS-CLI)
+- [AWS security services](#AWS-security-services)
+- [Random points](#Random-points)
+- [some architectures](#some-architectures)
+
+
 ## IAM - Identity Access Manager
 - Users, roles, groups, policy document (json), secret key and access key
 - Roles - provide permissions to resources / services
@@ -304,7 +340,8 @@ https://github.com/mransbro/aws-developer-notes
 - S3 Select / Glacier Select - select columns in csv
 - S3 notifications - may miss if objects not versioned
 
-## Cloud Front - CDN - content delivery network
+## Cloud Front - CDN
+- content delivery network
 - **for fast reads and downloads**
 - **first time read form root server, then store in EDGE LOCATIONS**
 - eq sydney user trying to access ireland data
@@ -323,7 +360,8 @@ https://github.com/mransbro/aws-developer-notes
     - Viewer Protocol Policy
     - Origin Protocol Policy
 
-## ECS / ECR - elastic containers service / elastic containers registry
+## ECS / ECR
+- elastic containers service / elastic containers registry
 - buildSpec.yaml file
 - ECR - to store, manage, and deploy Docker container images (uses S3 internally)
 - ECS - to run, stop, and manage Docker containers on a cluster
@@ -626,7 +664,8 @@ https://github.com/mransbro/aws-developer-notes
 - for lambda - u can define whole inline OR zip the whole in S3 and ref that (AWS::Lambda::Function)
 - code : ->zipFile : -> inline code for lambda
 
-## Kinesis - for streaming data
+## Kinesis 
+- for streaming data
 - 3 services
      - streams - in shards 
         - **retention 24h-7days** 
@@ -675,7 +714,8 @@ https://github.com/mransbro/aws-developer-notes
     - before allow traffic vs allow traffic vs after allow traffic
 - canary vs linear deployment - both can shift traffic in parts - 2 increments u define vs equal intervals over time
 
-## Cloud Watch - monitoring and logs
+## Cloud Watch 
+- monitoring and logs
 - **monitors performance of resources and reports metrics**
 - by default logs stored forever - even after termination
 - **in EC2 - by default monitors host level metrics**
@@ -689,10 +729,11 @@ https://github.com/mransbro/aws-developer-notes
 - high resolution - every sec - alarms every 10 sec
 - GetMetricsStatistics API
 - **encryption - even after months - "associate-kms-key"**
+### Cloud watch alarm 
+- 1min/2min detailed monitoring
 
-## Cloud watch alarm - 1min/2min detailed monitoring
-
-## Cloud Trail - API calls monitoring - resource provisioning
+## Cloud Trail 
+- API calls monitoring - resource provisioning
 - account-specific history, audit
 - by default - logs are encrypted using SSE-S3
 - by default it tracks only bucket-level action - to track object-level you need S3 Data events
