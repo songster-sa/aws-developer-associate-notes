@@ -182,14 +182,14 @@ https://github.com/mransbro/aws-developer-notes
     
 ## Route 53 - DNS
 - applicable to EC2, S3, LB
-- limit to 50 domain names
+- limit to 50 domain names - can ask aws to inc
 - types
     - CNAME - canonical name - non-root hostname to ANY hostname - for non-root domain only
     - record (address record) - hostname to IP address (A , AAAA)
     - alias - best - ANY hostname to AWS resources - mydomain.com : xx.amazonaws.com - free - for both root and non-root domains
 - routing policies
     - simple - default - can return more than 1 ips - browser can chose where to go - no health check
-    - multi value - same as simple WITH health check
+    - multi value - same as simple WITH health check - so route53 will return only healthy ones
     - weighted
     - latency - to lowest latency region
     - failover - via health checks
@@ -205,8 +205,8 @@ https://github.com/mransbro/aws-developer-notes
 - when created- you get DNS endpoint (good for DR)
 - set endpoint in EC2 and whitelist the EC2 security group in RDS security group
 - backups
-    - automated 
-        - daily 
+    - automated - default on
+        - daily backup + transaction logs
         - to the second - saved in S3
         - retention 1-35days (default 7)
         - deleted when RDS deleted 
@@ -218,11 +218,12 @@ https://github.com/mransbro/aws-developer-notes
 - but we can encrypt an unencrypted snapshot by copying as encrypted
 - Multi AZ - **Synchronous** replica
     - stand by DB - for fail over / DR
+    - not req for Aurora
 - Read Replica - **Asynchronous** replica 
     - only reads - performance - scaling out - max 5
     - can be within AZ, cross AZ, cross region
     - eventually consistent
-    - can be made into own DB
+    - can be made into own DB - will break replication
     - can be set for failover / DR
 - can be set up inside EC2 or outside (outside is adv)
 
@@ -231,9 +232,9 @@ https://github.com/mransbro/aws-developer-notes
 - is like RDS - no flexible schema
 - very cloud/high optimised
 - storage automatically grows - auto scalling
-- 15 read replicas
+- 15 read replicas - but in same region (unlike RDS - cross region)
 - failover is instantaneous
-- 6 copies across 3 AZ
+- 6 copies across 3 AZ (2x3=6)
 - self healing
 - writer endpoint = master
 - reader endpoints - connection load balancing
@@ -269,6 +270,7 @@ https://github.com/mransbro/aws-developer-notes
         - **persisted**
         - stateful
         - encryption - at rest / in transit ( redis auth)
+        - advanced data types, pub/sub , backups and restore
 - strategies
     - lazy loading / cache aside / lazy population - add to cache when cache miss
         - data in cache may be stale - eventually consistent
@@ -498,8 +500,8 @@ https://github.com/mransbro/aws-developer-notes
 ## Dynamo DB
 - noSQL - collection(table) - document(row) - key-value pairs
 - good for session state storage
-- **consistency model**
-    - eventually consistent read - consistent in 1 sec
+- **consistency model** 1 sec rule
+    - eventually consistent read - consistent in 1 sec - by default
     - strongly consistent read
 - **primary keys**
     - single attribute
@@ -543,9 +545,12 @@ https://github.com/mransbro/aws-developer-notes
     - reduced request frequency
 - optimistic concurrency - for conditional writes
 - scales horizontally
-- backups
-    - automated - but we dont have access to it
-    - hence use - AWS Glue, Hive + EMR, Data pipeline
+- backups - does not make DB slow unlike RDS
+    - automated - but we dont have access to it - used for point-in-time-recovery upto 5 min earlier - incremental
+        - not enabled by default
+        - hence use - AWS Glue, Hive + EMR, Data pipeline
+    - on demand
+    - rest all (retention, cross region)is same as RDS
 
 ## KMS - Key Management Service
 - solution to create and control your encryption keys
