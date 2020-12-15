@@ -483,7 +483,7 @@ https://github.com/mransbro/aws-developer-notes
 - enable "active-tracing" to support xray and send incoming requests and traces to xray
 
 ## VPC- virtual private cloud
-- region locked - subnets are per AZ
+- region locked - subnets are per AZ (many SN in 1AZ, but not vice versa)
 - like a VPN for your account
 - private subnet id
 - security group id and network ACL
@@ -493,8 +493,14 @@ https://github.com/mransbro/aws-developer-notes
 - internet gateway - helps public subnet to connect to internet
 - NAT gateway - helps private subnet to connect to internet - as it itself sits in public subnet
 - VPC Flow logs; subnet flow logs, ENI flow logs
+    - send to S3 or cloud watch (log group)
+    - log all / allow / reject traffic
+    - iam role
 - VPC IP range is called CIDR range
-- VPC peering - connect 1 vpc to another
+- VPC peering - connect 1 vpc to another - via direct connect
+    - in star formation
+    - no transitive peering - A cannot go to C via B - A needs its own peering
+    - can do across region, across accounts
 - site-to-site vpn VS direct connect - on premise to vpc connection
 
 ## Dynamo DB
