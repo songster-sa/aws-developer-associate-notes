@@ -70,11 +70,13 @@ https://github.com/mransbro/aws-developer-notes
 ## Amazon Cognito - web identity federation
 - used for larger companies
 - cognito is ID broker - it provides seamless experience across all devices
-- types
+- types (more like steps in the process)
     - user pools - JWT - manage sign-in and sign-up
+        - user creds
     - identity pool - STS (security token service) API 
         - create unique identities for users and authenticate them with web ID provider
         - only temporary access
+        - access to aws resources
     - aws credentials - mapped to IAM role
 - SMPS - system manager parameter store - to store credentials
     - can store but cannot rotate
@@ -151,6 +153,7 @@ https://github.com/mransbro/aws-developer-notes
     - NLB - on OSI layer 4 - extreme performance - million requests / sec
     - Classic - both 4 and 7 - x-forward and sticky session - 504 error when app not responding
         - legacy ones - mainly used for Classic EC2 instances
+        - basic - round-robin - cost effective
 - target groups - for routing traffic by hostname / ip / lambda
 - SNI - to support multiple SSL/TLSs certificates
 - **ELB per AZ; region locked**
@@ -163,6 +166,7 @@ https://github.com/mransbro/aws-developer-notes
 - **cross zone balancing (always on for ALB)** - charged for NLB
     - enabled - divide traffic across AZ
     - disabled - divide traffic only within own AZ
+- routing (via target groups) can be set up based on url path patterns
 - ALB access logs - details abt the requests
     - time, IP, latencies, path, response etc
 - ALB request tracing - 
@@ -367,6 +371,13 @@ https://github.com/mransbro/aws-developer-notes
 - buildSpec.yaml file
 - ECR - to store, manage, and deploy Docker container images (uses S3 internally)
 - ECS - to run, stop, and manage Docker containers on a cluster
+    - components 
+        - cluster - logical collection of ECS resources
+        - task definition - defines app (like dockerfile for ecs) -  how many containers u need?
+            - container definition - inside task def - CPU, memory alloc, port mappings for that container
+        - task - running instance of container
+        - service - scales tasks - like auto scalling min and max values
+        - registry = ECR / docker hub
 - launch types
     - Fargate launch type - for serverless
     - EC2 launch types - for more control you can launch the tasks on EC2 too
@@ -378,10 +389,12 @@ https://github.com/mransbro/aws-developer-notes
 - single task vs separate task definitions
     - when containers are launched on single tasks - they share memory
 - to change cluster - update ECS_CLUSTER parameter in /etc/ecs/ecs.config
+- ec2 instance role vs task role
+- ecs can work with ALB - when more than 1 task
 
 ## Serverless computing - Lambda
 - event driven, API driven
-- node.js, python, java, c#, go
+- node.js, python, java, c#, go, powershell, ruby
 - inc RAM - when more than 1 CPU then use multi threading
 - lambda functions have to be independent
 - **Lambda versioning** - use alias
@@ -481,6 +494,8 @@ https://github.com/mransbro/aws-developer-notes
     - HTTP custom integration - HTTP
     - mock integration - MOCK
 - enable "active-tracing" to support xray and send incoming requests and traces to xray
+- supports lambda, dynamodb. ec2 as well
+- scales automatically
 
 ## VPC- virtual private cloud
 - region locked - subnets are per AZ (many SN in 1AZ, but not vice versa)
@@ -573,7 +588,20 @@ https://github.com/mransbro/aws-developer-notes
 - **max data size 4kb** - what u can send to AWS to encrypt
 - **Envelope encryption** you fetch key - the key travels on network - and you use it to encrypt - performance efficient
 - GenerateDataKey - returns encrypted data key and plain text data key as well
+    - u can use plain text data key to encrypt any amount of data - not limited by 4kb size
+    - encrypt data then discard key and keep only cipherTextBlob .. as that knows what key was used
+    - this is a step in envelope encryption
 - GenerateDataKeyWithoutPlainText - only returns encrypted data key
+- 3 types of CMK
+    - aws managed - free, default - u can track usage but lifecycle and permissions are managed by aws
+        - rotated every 3yr
+    - customer managed - u create - u have full control on lifecycle and permissions, rotation etc
+        - option to rotate every yr
+    - aws owned - u cannot view/track or anything - u dont have it in ur account - aws resources use them
+- aws services use symmetric CMKs
+- asymmetric CMKs - used by users outside of aws who cant call KMS APIs
+    - u download public key - aws keeps private key - use RSA / ECC
+- u have policies attached to keys - to define who can do what
 
 ## SQS - Simple Queue Service
 - message queue - distributed - pull based
@@ -591,6 +619,7 @@ https://github.com/mransbro/aws-developer-notes
 - **retention - 1min - 14days - default 4 days**
     - change via queue message retention setting
 - **visibility timeout - <=12hours - default 30 sec (ChangeMessageVisibility API)**
+    - if job is not processed within that, then it becomes visible again and another reader may process it - resulting duplicates
 - **polling**
     - short polling - response every time - whether empty or not
     - long polling - response only when data or timeout (**20sec**) - efficient repeated polling
@@ -604,13 +633,19 @@ https://github.com/mransbro/aws-developer-notes
 ## SWF -Simple Workflow Service
 - task based queue (rather than msg based)
 - task once assigned are never duplicated; tasks are tracked
-- worker programs get tasks ; decider programs control the coordination
+- actors 3
+    - workflow starters
+    - activity worker programs - do / get tasks 
+    - decider programs control the coordination
+- tasks = steps = code / API call / human actions / scripts
+- retention period upto 1yr
+- domain = collection of related workflows
 
 ## SNS - Simple Notification Service
 - push based
 - msgs CAN be customised by protocol type
 - mobile, email, website, sms, **SQS**, **lambda**
-- Topic - group of recipients
+- Topic - group of recipients = ARN is created
 - multi AZ
 - publish subscribe
 - **Synchronous**
@@ -676,7 +711,7 @@ https://github.com/mransbro/aws-developer-notes
 - code : ->zipFile : -> inline code for lambda
 
 ## Kinesis 
-- for streaming data
+- to store streaming data
 - 3 services
      - streams - in shards 
         - **retention 24h-7days** 
@@ -686,7 +721,7 @@ https://github.com/mransbro/aws-developer-notes
         - no retention - automated shards 
         - easiest way to load streaming data into data stores and analytics tools
         - sink types/destinations - S3, Redshift, ElasticSearch, Splunk
-     - analytics - run sql queries on data (using firehose)
+     - analytics - run sql queries on data (using firehose) - analyse inside kinesis
 - massively scalable - can fan out to various endpoints
 
 ## CI/CD Services
