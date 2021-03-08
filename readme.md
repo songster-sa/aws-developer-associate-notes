@@ -127,8 +127,11 @@ https://github.com/mransbro/aws-developer-notes
     - when set up with Management console - no detailed monitoring
     - cooldown periods
 - first time ssh - key pair - permission denied - chmod 0400
-- ENI - assign private ips to EC2 - ssh not changed on failover
-- pricing - 60sec min - not when stopped
+- ENI - assign private ips to EC2 - ssh not changed on failover 
+    - is per AZ .. so you can move it within instances in that az
+    - 1 instance can have many ENIs
+    - 1 ENI can be attached to one instance at a time
+- pricing - billed by sec - 60sec minimum - not when stopped
 - for EC2 to do something (cloud watch, code build, xray)- you need agents - download and run - then your installed code will integrate
 
 ## EBS - Elastic Block Storage
