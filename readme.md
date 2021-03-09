@@ -285,6 +285,7 @@ https://github.com/mransbro/aws-developer-notes
     - write through - add to cache when db is updated
         - data not stale - data may be never read
         - write is slow
+    - session store - store temporary session data (have TTL on it)
 - cache eviction - LRU ot TTL
         
 ## S3 - Simple Storage Service
