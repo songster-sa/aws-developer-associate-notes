@@ -346,8 +346,8 @@ https://github.com/mransbro/aws-developer-notes
     - make bucket policy
 - S3 object lock - write once read many - WORM - diff from "object locking" (when 2 PUTs come at the same time)
 - S3 analytics - analyse storage access patterns
-- Athena - Serverless data analysis service allowing you to query data in S3
-- S3 Select / Glacier Select - select columns in csv
+- Athena - Serverless data analysis service allowing you to query data in S3 (complex queries)
+- S3 Select / Glacier Select - select columns in csv (simple queries)
 - S3 notifications - may miss if objects not versioned
 
 ## Cloud Front - CDN
