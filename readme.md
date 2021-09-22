@@ -72,7 +72,7 @@ https://github.com/mransbro/aws-developer-notes
 - cognito is ID broker - it provides seamless experience across all devices
 - types (more like steps in the process)
     - user pools - JWT - manage sign-in and sign-up
-        - user creds
+        - user management
     - identity pool - STS (security token service) API 
         - create unique identities for users and authenticate them with web ID provider
         - only temporary access
@@ -182,7 +182,7 @@ https://github.com/mransbro/aws-developer-notes
     - 504 - gateway timeout - targets are there but not connected/reachable/responding - security group
     - 403 - forbidden - WAF not allowing
     - 500 - internal server error - 
-- ALB can authenticate users using Cognito
+- **ALB can authenticate users using Cognito** - Use Cognito Authentication via Cognito User Pools for your ALB
 - connection draining - 300sec by default - when marked unhealthy and terminating
 - NLB exposes public static IP whereas ALB and CLB exposes DNS URLs
 - may distribute load based on EC2 instance types as well - low type less load
@@ -200,9 +200,9 @@ https://github.com/mransbro/aws-developer-notes
     - weighted
     - latency - to lowest latency region
     - failover - via health checks
-    - geolocation
+    - geolocation - not for reducing latency
 - provides load balancing and health checks(3 default; 30sec interval), TTLs
-- DNS changes will start reflecting after TTL expired only - as browser wont query until then
+- **DNS caching issue** - changes will start reflecting after TTL expired only - as browser wont query until then
 
 ## RDS - Relational Database Service
 - OLTP - online transaction processing
@@ -369,6 +369,7 @@ https://github.com/mransbro/aws-developer-notes
 - HTTPS - can be done end-to-end -> frontend-cloud front-backend
     - Viewer Protocol Policy
     - Origin Protocol Policy
+- can also be used to authenticate users - via cognito user pool - but needs Lambda@Edge function = development effort    
 
 ## ECS / ECR
 - elastic containers service / elastic containers registry
@@ -633,6 +634,8 @@ https://github.com/mransbro/aws-developer-notes
 - for msg >256KB to 2GB - use S3 or SQS Extended Clients
     - no multi part API / concept
 - **use with SNS to "fan out" msgs to multiple queues**
+- FIFO SQS queues support up to 300 messages per second (300 send, receive, or delete operations per second)
+    - to support more - created batches ( 4 for 1000m/s)
 
 ## SWF -Simple Workflow Service
 - task based queue (rather than msg based)
@@ -721,6 +724,7 @@ https://github.com/mransbro/aws-developer-notes
         - **retention 24h-7days** 
         - rapidly move data off producers 
         - realtime processing and analysing
+        - manually provision shards 
      - firehose 
         - no retention - automated shards 
         - easiest way to load streaming data into data stores and analytics tools
