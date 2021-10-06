@@ -238,7 +238,7 @@ https://github.com/mransbro/aws-developer-notes
 - supports postgres and MySQL
 - is like RDS - no flexible schema
 - very cloud/high optimised
-- storage automatically grows - auto scalling
+- storage automatically grows - auto scaling
 - 15 read replicas - but in same region (unlike RDS - cross region)
 - failover is instantaneous
 - 6 copies across 3 AZ (2x3=6)
@@ -625,12 +625,15 @@ https://github.com/mransbro/aws-developer-notes
     - change via queue message retention setting
 - **visibility timeout - <=12hours - default 30 sec (ChangeMessageVisibility API)**
     - if job is not processed within that, then it becomes visible again and another reader may process it - resulting duplicates
+- **message timer** - <=15 min - default 0 - set initial invisibility period
+    - if you send a message with a 60-second timer, the message isn't visible to consumers for its first 60 seconds in the queue
 - **polling**
     - short polling - response every time - whether empty or not
     - long polling - response only when data or timeout (**20sec**) - efficient repeated polling
 - not supported in all regions - only in 4
 - 1st million requests are free - then 0.50 
-- Delay Q - msg stays invisible from 0-900sec
+- **Delay Q** - msg stays invisible from 0-900sec (15min)
+- **dead-letter Q** - isolate problematic msgs for debugging
 - for msg >256KB to 2GB - use S3 or SQS Extended Clients
     - no multi part API / concept
 - **use with SNS to "fan out" msgs to multiple queues**
@@ -726,8 +729,9 @@ https://github.com/mransbro/aws-developer-notes
         - realtime processing and analysing
         - manually provision shards 
      - firehose 
-        - no retention - automated shards 
-        - easiest way to load streaming data into data stores and analytics tools
+        - **no retention** 
+        - **automated shards** - no manual provisioning
+        - easiest way to **load streaming data** into data stores and analytics tools
         - sink types/destinations - S3, Redshift, ElasticSearch, Splunk
      - analytics - run sql queries on data (using firehose) - analyse inside kinesis
 - massively scalable - can fan out to various endpoints
@@ -783,6 +787,11 @@ https://github.com/mransbro/aws-developer-notes
 - high resolution - every sec - alarms every 10 sec
 - GetMetricsStatistics API
 - **encryption - even after months - "associate-kms-key"**
+- automatically recover the EC2 instance if it becomes impaired due to an underlying hardware failure
+    - A recovered instance is identical to the original instance
+        - including the instance ID, private IP addresses, Elastic IP addresses, and all instance metadata, placement group
+    - If your instance has a public IPv4 address, it retains the public IPv4 address after recovery
+    - in-memory data is lost
 ### Cloud watch alarm 
 - 1min/2min detailed monitoring
 
@@ -910,6 +919,12 @@ https://github.com/mransbro/aws-developer-notes
 - AWS AppSync - for GraphQL - manage mobile data when offline
 - Websockets - bi-directional comm API
 - GraphQL - graph query language
+
+- **cloud formation vs beanstalk**
+    - AWS CloudFormation - use code to model and provision all the resources needed for your applications across all Regions and accounts. 
+      Think infrastructure as code; think CloudFormation. 
+    - Beanstalk where you just upload your application code and **Beanstalk automatically figures out** what resources are required to deploy that application.
+    - In CloudFormation, you have to explicitly specify which resources you want to provision.
 
 ## some architectures
 - LAMP stack - linux, apache server, mysql, php
