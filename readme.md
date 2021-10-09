@@ -143,7 +143,7 @@ https://github.com/mransbro/aws-developer-notes
     - General purpose SSD - GP2 - 3k to 16k iops - ratio 3:1 - 3000 IOPs bursts
     - Provisioned IOPS SSD - IO 1 ->16k IOPS -> high performance -> 50:1 is max allowed ratio
 - magnetic disks (HHD)
-    - throughput optimised HDD (STI) - max 500 IOPs - for streaming workloads - fast throughput - 40:1
+    - throughput optimised HDD (STI) - max 500 IOPs - **for streaming workloads** - fast throughput - 40:1
     - Cold HDD (SCI file save) -> where data is NOT accessed regularly - max 250 IOPs - 12:1
     - Standard magnetic-> bootable -> where data is NOT accessed regularly
 - configure encryption while creating EBS volume
@@ -278,6 +278,8 @@ https://github.com/mransbro/aws-developer-notes
         - stateful
         - encryption - at rest / in transit ( redis auth)
         - advanced data types, pub/sub , backups and restore
+        - HIPAA and PCI DSS complaint
+        - supports geospatial data
 - strategies
     - lazy loading / cache aside / lazy population - add to cache when cache miss
         - data in cache may be stale - eventually consistent
@@ -295,7 +297,7 @@ https://github.com/mransbro/aws-developer-notes
 - **0 bytes to 5 TB**
 - **globally unique DNS**
 - **Read (immediately) after write for new PUTs objects** - GET-PUT-GET may not work
-- **Eventually consistent for modify / overwrites via PUTs and DELETEs**
+- **~~Eventually~~ Strongly consistent read-after-write for modify / overwrites via PUTs and DELETEs**
 - **PUTs by default support max 5GB data** - use multi-part upload for more 
 - for file more than 100MB - multi part is any recommended
 - bucket names are global but buckets are region resource
@@ -476,6 +478,7 @@ https://github.com/mransbro/aws-developer-notes
     - urls, http methods, SSL/TLS, targets
 - API gateway caching = API response caching = stage cache
     - Cache-Control:max-age=0 -> to fetch fresh every time - but should "Require Authorization" as well
+    - max TTL 3600 seconds, default 300
 - browsers cache against same origin - so AWS uses CORS to change origin (to refresh cache)
 - API gateway errors 
     - **429 - too many requests** - throttle - exponential backoff etc
@@ -830,7 +833,7 @@ https://github.com/mransbro/aws-developer-notes
     -  monitors requests on clout front, ALB, API gateway
     - SQL injections
     - cross site scripting
-    - block IPs based on rules (ip, country, header values, strings in requests)
+    - block/allow IPs based on rules (ip, country, header values, strings in requests)
 - Macie
     - data loss prevention
     - uses machine learning to protect sensitive data
